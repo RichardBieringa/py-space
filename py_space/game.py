@@ -1,4 +1,5 @@
 import logging
+from re import S
 import sys
 
 from typing import Sequence, List
@@ -37,8 +38,13 @@ class Game:
     def initialize_space_game(self):
         """Sets up the game specific details."""
 
-        # Creates the player ship
-        self.player = player.Player(self.screen)
+        # Places the player in the middle above the bottom of the screen
+        screen_rect = self.screen.get_rect()
+        player_x = (screen_rect.right - screen_rect.left) / 2
+        player_y = (screen_rect.bottom) + 20
+
+        # Inserts the player into the game
+        self.player = player.Player(player_x, player_y)
         self.add_game_object(self.player)
 
     def run_game(self) -> None:
@@ -58,11 +64,11 @@ class Game:
         pygame.quit()
         sys.exit()
 
-    def add_game_object(self, game_object: game_object_proto.GameObject) -> None:
+    def add_game_object(self, game_object: proto.GameObject) -> None:
         """Adds a game object to the game."""
         self.objects.append(game_object)
 
-    def remove_game_object(self, game_object: game_object_proto.GameObject) -> None:
+    def remove_game_object(self, game_object: proto.GameObject) -> None:
         """Remove a game object to the game."""
         self.objects.remove(game_object)
 
@@ -73,12 +79,12 @@ class Game:
 
         pass
 
-    def _draw_game_objects(self) -> None:
-        """Updates the location of all game objects and draws them on the screen"""
+    def _update_game_objects(self, key_events: Sequence[bool]) -> None:
+        """Updates the location of all game objects and draws them on the screen."""
 
         # Other updates updates
         for object in self.objects:
-            object.update()
+            object.update(key_events, self.screen)
             object.paint(self.screen)
 
     def _run(self):
@@ -97,7 +103,9 @@ class Game:
                     logging.info("Quiting the game...")
                     self.quit_game()
 
-            keys_pressed = pygame.key.get_pressed()
+            keys_events = pygame.key.get_pressed()
+
+            self._update_game_objects(keys_events)
 
             pygame.display.update()
 

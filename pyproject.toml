@@ -4,6 +4,9 @@ version = "0.1.0"
 description = ""
 authors = ["Richard Bieringa <richardbieringa@gmail.com>"]
 
+[tool.poetry.scripts]
+game = 'py_space.main:main'
+
 [tool.poetry.dependencies]
 python = "^3.10"
 pygame = "^2.1.2"

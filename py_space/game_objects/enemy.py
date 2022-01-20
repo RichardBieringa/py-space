@@ -10,8 +10,9 @@ IMAGE_DIR = ASSETS_DIRECTORY / "ship_red.png"
 class Enemy(pygame.sprite.Sprite):
     """Represents an enemy ship"""
 
-    def __init__(self, width: int = 50, height: int = 40) -> None:
+    def __init__(self, x_pos: int, y_pos: int, width: int = 50, height: int = 40) -> None:
         super().__init__()
+
         # Loads the image from the assets directory
         image = pygame.image.load(str(IMAGE_DIR))
         # Scale the image
@@ -22,10 +23,10 @@ class Enemy(pygame.sprite.Sprite):
         self.velocity = 5
 
         self.surface = image
-        self.rect = self.surface.get_rect()
+        self.rect = self.surface.get_rect(center=(x_pos, y_pos))
 
-    def update(self, canvas: pygame.Surface, key_events: Sequence[bool]):
-        """Updates the position of the Enemy."""
+    def update(self, key_events: Sequence[bool], canvas: pygame.Surface):
+        """Update the game object."""
 
         self.rect.move_ip(0, self.velocity)
 

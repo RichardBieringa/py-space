@@ -1,8 +1,9 @@
 import pygame
-from typing import Protocol
+
+from typing import Protocol, Sequence
 
 class GameObject(Protocol):
-    def update(self):
+    def update(self, key_events: Sequence[bool], canvas: pygame.Surface):
         """Update the game object."""
 
     def paint(self, canvas: pygame.Surface):
