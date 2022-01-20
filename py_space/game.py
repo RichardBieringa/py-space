@@ -1,9 +1,7 @@
 import logging
-from re import S
 import sys
-
-from typing import Sequence, List
-import py
+import random
+from typing import Sequence, List, Optional
 
 import pygame
 
@@ -41,7 +39,7 @@ class Game:
 
         self.enemies = pygame.sprite.Group()
         self.rockets = pygame.sprite.Group()
-        self.sprites = pygame.sprite.Group()
+        self.all_sprites = pygame.sprite.Group()
 
         # Places the player in the middle above the bottom of the screen
         screen_rect = self.screen.get_rect()
@@ -51,7 +49,6 @@ class Game:
         # Inserts the player into the game
         self.player = player.Player(player_x, player_y)
         self.add_game_object(self.player)
-        self.sprites.add(self.player)
 
         self.last_bullet = 0
 
@@ -72,9 +69,19 @@ class Game:
         pygame.quit()
         sys.exit()
 
-    def add_game_object(self, game_object: proto.GameObject) -> None:
-        """Adds a game object to the game."""
+    def add_game_object(
+        self,
+        game_object: proto.GameObject,
+        sprite_group: Optional[Sequence[pygame.sprite.Sprite]] = None,
+    ) -> None:
+        """Adds a game object to the game and to a sprite group if provided."""
+
         self.objects.append(game_object)
+        self.all_sprites.add(game_object)
+
+        # Add to custom sprite group if supplied
+        if sprite_group is not None:
+            sprite_group.add(game_object)
 
     def remove_game_object(self, game_object: proto.GameObject) -> None:
         """Remove a game object to the game."""
@@ -102,8 +109,7 @@ class Game:
 
         # Can't have more than 4 rockets in the game
         if len(self.rockets) > 4:
-            logging.log(
-                logging.INFO,
+            logging.info(
                 "Fire Rocket (false) - Too many rockets %s",
                 len(self.rockets),
             )
@@ -114,9 +120,7 @@ class Game:
         time_since_last_bullet = now - self.last_bullet
 
         if time_since_last_bullet < 300:
-            logging.log(
-                logging.INFO, "Fire Rocket (false) - Can't fire that fast in succession"
-            )
+            logging.info("Fire Rocket (false) - Can't fire that fast in succession")
             return False
 
         # Gets the position for the rocket to spawn
@@ -125,17 +129,31 @@ class Game:
         y_pos = player_rect.top + 5
 
         rocket_instance = rocket.Rocket(x_pos, y_pos)
-        self.add_game_object(rocket_instance)
-        self.rockets.add(rocket_instance)
+        self.add_game_object(rocket_instance, self.rockets)
 
         self.last_bullet = now
 
-        logging.log(logging.INFO, "Fire Rocket (True)")
+        logging.info("Fire Rocket (True)")
 
         return True
 
+    def _spawn_enemy(self):
+        """Spawns a enemy on the field."""
+
+        # Get a random location somewhwere above the playable surface
+        screen_rect = self.screen.get_rect()
+        x_pos = random.randint(screen_rect.left + 10, screen_rect.right - 10)
+        y_pos = random.randint(screen_rect.top + 10, screen_rect.top + 50)
+
+        enemy_instance = enemy.Enemy(x_pos, y_pos)
+        self.add_game_object(enemy_instance, self.enemies)
+
     def _run(self):
         """Runs the main game loop."""
+
+        # Create a custom event for adding a new enemy
+        SPAWN_ENEMY = pygame.USEREVENT + 1
+        pygame.time.set_timer(SPAWN_ENEMY, 400)
 
         while self.running:
 
@@ -145,9 +163,12 @@ class Game:
             # Get all pygame events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-
                     logging.info("Quiting the game...")
                     self.quit_game()
+
+                if event.type == SPAWN_ENEMY:
+                    logging.info("Spawning an enemy...")
+                    self._spawn_enemy()
 
             # Get a list of which keys are pressed by the user
             key_events = pygame.key.get_pressed()
@@ -158,5 +179,15 @@ class Game:
 
             # Updates all the game objects and draws them on screen
             self._update_game_objects(key_events)
+
+            # Check if a rocket killed any enemy
+            if pygame.sprite.groupcollide(self.rockets, self.enemies, True, True):
+                print("pew pew")
+
+            # The player collides with an enemy and loses the game
+            if pygame.sprite.spritecollideany(self.player, self.enemies):
+                print("You are dead, game over...")
+                self.player.kill()
+                self.stop_game()
 
             pygame.display.update()
