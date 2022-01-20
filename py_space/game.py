@@ -6,6 +6,7 @@ from typing import Sequence, List, Optional
 import pygame
 
 from py_space.game_objects import proto
+from py_space.game_objects import background
 from py_space.game_objects import player
 from py_space.game_objects import enemy
 from py_space.game_objects import rocket
@@ -22,6 +23,8 @@ class Game:
         # Generic Configuration
         self.title = title
         self.fps = fps
+        self.screen_height = height
+        self.screen_width = width
         self.running = False
         self.clock = pygame.time.Clock()
         self.objects: List[proto.GameObject] = []
@@ -45,6 +48,10 @@ class Game:
         screen_rect = self.screen.get_rect()
         player_x = (screen_rect.right - screen_rect.left) / 2
         player_y = (screen_rect.bottom) + 20
+
+        # Adds a background image to the game objects
+        self.background = background.Background(self.screen_width, self.screen_height)
+        self.add_game_object(self.background)
 
         # Inserts the player into the game
         self.player = player.Player(player_x, player_y)
