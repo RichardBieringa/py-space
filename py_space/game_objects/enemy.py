@@ -10,7 +10,9 @@ IMAGE_DIR = ASSETS_DIRECTORY / "ship_red.png"
 class Enemy(pygame.sprite.Sprite):
     """Represents an enemy ship"""
 
-    def __init__(self, x_pos: int, y_pos: int, width: int = 50, height: int = 40) -> None:
+    def __init__(
+        self, x_pos: int, y_pos: int, width: int = 50, height: int = 40
+    ) -> None:
         super().__init__()
 
         # Loads the image from the assets directory
@@ -20,15 +22,19 @@ class Enemy(pygame.sprite.Sprite):
         # Flip the image vertically
         image = pygame.transform.flip(image, 0, 180)
 
-        self.velocity = 5
+        self.velocity = 1
 
         self.surface = image
         self.rect = self.surface.get_rect(center=(x_pos, y_pos))
 
     def update(self, key_events: Sequence[bool], canvas: pygame.Surface):
-        """Update the game object."""
+        """Update the Enemy ship's position and check if it reaches the bottom."""
 
         self.rect.move_ip(0, self.velocity)
+
+        # Check out of bounds
+        if self.rect.bottom < canvas.get_rect().top:
+            self.kill()
 
     def paint(self, canvas: pygame.Surface):
         """Paint the Enemy on the parent Surface."""
