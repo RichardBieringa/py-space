@@ -2,7 +2,7 @@ import pygame
 
 from typing import Sequence
 
-from space_invaders.game_objects import ASSETS_DIRECTORY
+from py_space.game_objects import ASSETS_DIRECTORY
 
 IMAGE_DIR = ASSETS_DIRECTORY / "ship_red.png"
 
